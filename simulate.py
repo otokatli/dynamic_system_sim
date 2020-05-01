@@ -3,7 +3,7 @@ from numpy import array, linspace
 from scipy.integrate import solve_ivp
 
 
-def dx(t, x, control_input):
+def dx(t, x, r):
     # Dynamic system parameters, unit system m-kg-s
     m, b, k = 1, 0.1, 3
 
@@ -11,7 +11,13 @@ def dx(t, x, control_input):
     A = array([[0.0, 1.0], [-k/m, -b/m]])
     B = array([0.0, 1.0 / m])
 
-    return A @ x + B * control_input
+    # Full state feedback
+    K = array([1.0, 0.25])
+
+    # control input
+    u = r - K @ x
+
+    return A @ x + B @ u
 
 
 if __name__ == "__main__":
@@ -24,9 +30,10 @@ if __name__ == "__main__":
     stop_time = 10.0
     num_points = 250
 
-    u = 1
+    # Reference
+    x_d = array([-0.5, 0.0])
 
-    sol = solve_ivp(dx, (0.0, stop_time), x_0, method='RK45', max_step=1e-4, args=[u])
+    sol = solve_ivp(dx, (0.0, stop_time), x_0, method='RK45', max_step=1e-4, args=[x_d])
 
     fig, ax = plt.subplots(2, 1)
     ax[0].plot(sol.t, sol.y[0])
